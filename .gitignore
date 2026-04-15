@@ -1,0 +1,34 @@
+# User Documentation
+MASTER_PLAN.txt
+API.md
+RUN_COMMANDS.md
+
+# Environment Variables & Secrets
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+backend/chroma_db/
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/.eslintcache
+npm-debug.log*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
