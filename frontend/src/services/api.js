@@ -4,8 +4,8 @@ const api = axios.create({
   baseURL: 'http://localhost:8000/api',
 });
 
-export const fetchBooks = (page = 1, search = '', genre = '') => {
-  const params = { page };
+export const fetchBooks = (page = 1, search = '', genre = '', pageSize = 20) => {
+  const params = { page, page_size: pageSize };
   if (search) params.search = search;
   if (genre) params.genre = genre;
   return api.get('/books/', { params });

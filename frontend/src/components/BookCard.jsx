@@ -1,105 +1,81 @@
 import { useNavigate } from 'react-router-dom';
-import { Star, Tag, BookOpen, DollarSign } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
-const GENRE_COLORS = {
-  Fiction:         'bg-purple-500/20 text-purple-300 border-purple-500/30',
-  'Non-Fiction':   'bg-blue-500/20 text-blue-300 border-blue-500/30',
-  Mystery:         'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-  Romance:         'bg-pink-500/20 text-pink-300 border-pink-500/30',
-  'Science Fiction':'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
-  Fantasy:         'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-  Thriller:        'bg-red-500/20 text-red-300 border-red-500/30',
-  Biography:       'bg-orange-500/20 text-orange-300 border-orange-500/30',
-  'Self-Help':     'bg-teal-500/20 text-teal-300 border-teal-500/30',
-  History:         'bg-amber-500/20 text-amber-300 border-amber-500/30',
-  Children:        'bg-lime-500/20 text-lime-300 border-lime-500/30',
-  Horror:          'bg-rose-500/20 text-rose-300 border-rose-500/30',
-  Adventure:       'bg-sky-500/20 text-sky-300 border-sky-500/30',
-};
-
-const DEFAULT_GENRE_COLOR = 'bg-gray-500/20 text-gray-300 border-gray-500/30';
-
-function StarRating({ rating }) {
+function TextRating({ rating }) {
+  if (!rating) return null;
   return (
-    <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map(i => (
-        <Star
-          key={i}
-          className={`w-3.5 h-3.5 ${i <= Math.round(rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-700 fill-gray-700'}`}
-        />
-      ))}
-      <span className="text-xs text-gray-400 ml-1">{rating?.toFixed(1)}</span>
+    <div className="text-[10px] text-secondary-text uppercase tracking-widest mt-1">
+      • {rating?.toFixed(1)} / 5
     </div>
   );
 }
 
-export function BookCardSkeleton() {
+export function BookCardSkeleton({ viewMode = 'grid' }) {
   return (
-    <div className="card overflow-hidden flex flex-col">
-      <div className="skeleton h-56 w-full rounded-none" />
-      <div className="p-4 flex flex-col gap-3">
-        <div className="skeleton h-4 w-3/4" />
+    <div className={`card flex pt-4 ${viewMode === 'list' ? 'flex-col sm:flex-row gap-8 items-start' : 'flex-col'}`}>
+      <div className={`skeleton flex-shrink-0 ${viewMode === 'list' ? 'w-32 sm:w-40 h-[192px] sm:h-[240px]' : 'h-[300px] w-full'}`} />
+      <div className={`mt-6 flex flex-col gap-3 w-full ${viewMode === 'list' ? 'sm:mt-0 flex-1' : ''}`}>
+        <div className="skeleton h-5 w-3/4" />
         <div className="skeleton h-3 w-1/2" />
         <div className="skeleton h-3 w-1/3" />
-        <div className="skeleton h-6 w-20 rounded-full" />
       </div>
     </div>
   );
 }
 
-export default function BookCard({ book }) {
+export default function BookCard({ book, viewMode = 'grid' }) {
   const navigate = useNavigate();
-  const genreColor = GENRE_COLORS[book.ai_genre] || DEFAULT_GENRE_COLOR;
 
   return (
     <div
       onClick={() => navigate(`/books/${book.id}`)}
-      className="card overflow-hidden flex flex-col cursor-pointer group hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/10 transition-all duration-300 hover:-translate-y-1"
+      className={`card flex cursor-pointer group pt-4 ${viewMode === 'list' ? 'flex-col sm:flex-row gap-8 items-start' : 'flex-col'}`}
     >
       {/* Cover Image */}
-      <div className="relative overflow-hidden h-56 bg-gray-800 flex-shrink-0">
+      <div className={`relative overflow-hidden bg-secondary-bg flex-shrink-0 flex items-center justify-center ${viewMode === 'list' ? 'w-32 sm:w-40 aspect-[2/3]' : 'aspect-[2/3] w-full'}`}>
         {book.cover_image_url ? (
           <img
             src={book.cover_image_url}
             alt={book.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover transition-all duration-700 filter group-hover:brightness-110 group-hover:scale-[1.02]"
             onError={e => { e.target.style.display = 'none'; }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <BookOpen className="w-16 h-16 text-gray-700" />
+            <BookOpen className="w-12 h-12 text-border-color" />
           </div>
         )}
-        {/* Price Badge */}
+        
+        {/* Price Badge - Subtle text, no box */}
         {book.price && (
-          <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-lg border border-white/10">
-            {book.price}
+          <div className="absolute top-0 right-0 p-3 bg-gradient-to-bl from-black/80 to-transparent">
+            <span className="text-[10px] text-primary-text uppercase tracking-widest">{book.price}</span>
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div className="p-4 flex flex-col gap-2.5 flex-1">
+      <div className={`mt-6 flex flex-col flex-1 w-full ${viewMode === 'list' ? 'sm:mt-0 h-full justify-between' : ''}`}>
         <div>
-          <h3 className="font-semibold text-white text-sm leading-snug line-clamp-2 group-hover:text-brand-300 transition-colors">
-            {book.title}
-          </h3>
-          <p className="text-xs text-gray-500 mt-1 truncate">{book.author}</p>
+          <h3 className="font-serif text-lg text-primary-text leading-snug line-clamp-2 group-hover:text-accent transition-colors">
+          {book.title}
+        </h3>
+        
+        <p className="text-sm font-serif italic text-secondary-text mt-2 truncate">
+          {book.author}
+        </p>
+
+        <TextRating rating={book.rating} />
         </div>
 
-        <StarRating rating={book.rating} />
-
-        <div className="flex items-center justify-between mt-auto pt-1">
-          {(book.ai_genre || book.genre) && (
-            <span className={`badge border ${genreColor}`}>
-              <Tag className="w-2.5 h-2.5 mr-1" />
-              {book.ai_genre || book.genre}
-            </span>
-          )}
-          <span className={`text-xs font-medium ml-auto ${
-            book.availability?.toLowerCase().includes('in stock') ? 'text-green-400' : 'text-red-400'
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-secondary-bg">
+          <span className="text-[10px] uppercase tracking-widest text-faint-text group-hover:text-secondary-text transition-colors">
+            {book.ai_genre || book.genre || 'Unknown'}
+          </span>
+          <span className={`text-[10px] uppercase tracking-widest ${
+            book.availability?.toLowerCase().includes('in stock') ? 'text-secondary-text' : 'text-red-900'
           }`}>
-            {book.availability?.includes('In stock') || book.availability?.toLowerCase().includes('in stock') ? '● In Stock' : '○ Out of Stock'}
+            {book.availability?.toLowerCase().includes('in stock') ? 'Available' : 'Unavailable'}
           </span>
         </div>
       </div>

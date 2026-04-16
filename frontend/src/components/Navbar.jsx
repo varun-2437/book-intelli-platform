@@ -1,54 +1,60 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, MessageSquare, LayoutGrid, Sparkles } from 'lucide-react';
+import { BookOpen, Sparkles, MessageSquareText, Moon, Sun } from 'lucide-react';
 
-export default function Navbar() {
+export default function Navbar({ onOpenDrawer }) {
   const { pathname } = useLocation();
+  const [isLight, setIsLight] = useState(() => {
+    return localStorage.getItem('bookIntel_theme') === 'light';
+  });
 
-  const navItems = [
-    { to: '/', icon: LayoutGrid, label: 'Dashboard' },
-    { to: '/ask', icon: MessageSquare, label: 'Ask AI' },
-  ];
+  useEffect(() => {
+    if (isLight) {
+      document.documentElement.classList.add('light');
+      localStorage.setItem('bookIntel_theme', 'light');
+    } else {
+      document.documentElement.classList.remove('light');
+      localStorage.setItem('bookIntel_theme', 'dark');
+    }
+  }, [isLight]);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/80 backdrop-blur-xl">
+    <nav className="sticky top-0 z-40 border-b border-secondary-bg bg-primary-bg/90 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="p-2 rounded-xl bg-brand-600 group-hover:bg-brand-700 transition-colors">
-              <BookOpen className="w-5 h-5 text-white" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="p-1.5 transition-colors">
+              <BookOpen className="w-6 h-6 text-primary-text group-hover:text-accent transition-colors" strokeWidth={1.5} />
             </div>
             <div>
-              <span className="text-lg font-bold text-white tracking-tight">BookIntel</span>
-              <span className="hidden sm:inline text-xs text-gray-500 block -mt-1">AI-Powered Platform</span>
+              <span className="text-2xl font-serif text-primary-text tracking-wide">BookIntel</span>
+              <span className="hidden sm:block text-[10px] uppercase tracking-widest text-secondary-text mt-0.5">Librarian AI</span>
             </div>
           </Link>
 
-          {/* Nav Links */}
-          <div className="flex items-center gap-1">
-            {navItems.map(({ to, icon: Icon, label }) => {
-              const isActive = pathname === to || (to !== '/' && pathname.startsWith(to));
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-brand-600 text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden sm:inline">{label}</span>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Badge */}
-          <div className="hidden md:flex items-center gap-2 text-xs text-gray-500">
-            <Sparkles className="w-3.5 h-3.5 text-brand-500" />
-            <span>Powered by GPT OSS 120B</span>
+          {/* Right Actions */}
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="hidden md:flex items-center gap-2 text-[10px] uppercase tracking-widest text-secondary-text mr-4">
+              <Sparkles className="w-3 h-3 text-accent" />
+              <span>NVIDIA NIM · GPT-OSS 120B</span>
+            </div>
+            
+            <button
+              onClick={() => setIsLight(!isLight)}
+              className="p-2 border border-border-color hover:border-accent text-secondary-text hover:text-accent transition-all duration-300"
+              aria-label="Toggle theme"
+            >
+              {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            </button>
+            
+            <button
+              onClick={onOpenDrawer}
+              className="flex items-center gap-2 px-5 py-2.5 bg-transparent border border-border-color hover:border-accent text-primary-text text-xs uppercase tracking-widest transition-colors duration-300 group"
+            >
+              <MessageSquareText className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+              <span>Ask AI</span>
+            </button>
           </div>
         </div>
       </div>

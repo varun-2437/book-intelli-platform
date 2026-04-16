@@ -1,35 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, Star, Tag, BookOpen, ExternalLink, Loader2,
-  Smile, Meh, Frown, ChevronRight, Sparkles
+  ArrowLeft, BookOpen, ExternalLink, Loader2,
+  ChevronRight, ChevronLeft, Sparkles
 } from 'lucide-react';
-import { fetchBookDetail, fetchRecommendations } from '../services/api';
+import { fetchBookDetail, fetchRecommendations, fetchBooks } from '../services/api';
 import BookCard, { BookCardSkeleton } from '../components/BookCard';
 
-function StarRating({ rating }) {
+function TextRating({ rating }) {
+  if (!rating) return null;
   return (
-    <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map(i => (
-        <Star key={i} className={`w-5 h-5 ${i <= Math.round(rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-700 fill-gray-700'}`} />
-      ))}
-      <span className="ml-2 text-gray-300 font-medium">{rating?.toFixed(1)}</span>
+    <div className="text-xs text-secondary-text uppercase tracking-widest mt-1 pb-4 border-b border-secondary-bg">
+      • {rating?.toFixed(1)} / 5 Rating
     </div>
-  );
-}
-
-function SentimentBadge({ sentiment }) {
-  const map = {
-    Positive: { icon: Smile, color: 'text-green-400 bg-green-400/10 border-green-400/20', label: 'Positive' },
-    Negative: { icon: Frown, color: 'text-red-400 bg-red-400/10 border-red-400/20', label: 'Negative' },
-    Neutral:  { icon: Meh,  color: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20', label: 'Neutral' },
-  };
-  const config = map[sentiment] || map['Neutral'];
-  const Icon = config.icon;
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm font-medium ${config.color}`}>
-      <Icon className="w-4 h-4" /> {config.label}
-    </span>
   );
 }
 
@@ -40,6 +23,25 @@ export default function BookDetail() {
   const [recs, setRecs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [recsLoading, setRecsLoading] = useState(true);
+  const [bookIds, setBookIds] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
+
+  // Fetch all book IDs once for prev/next navigation
+  useEffect(() => {
+    fetchBooks(1, '', '', 100)
+      .then(res => {
+        const ids = (res.data.results || []).map(b => b.id);
+        setBookIds(ids);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Update current index when bookIds or id changes
+  useEffect(() => {
+    if (bookIds.length > 0) {
+      setCurrentIndex(bookIds.indexOf(Number(id)));
+    }
+  }, [bookIds, id]);
 
   useEffect(() => {
     setLoading(true);
@@ -55,12 +57,13 @@ export default function BookDetail() {
       .finally(() => setRecsLoading(false));
   }, [id]);
 
+  const prevBookId = currentIndex > 0 ? bookIds[currentIndex - 1] : null;
+  const nextBookId = currentIndex >= 0 && currentIndex < bookIds.length - 1 ? bookIds[currentIndex + 1] : null;
+
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-center py-32">
-          <Loader2 className="w-10 h-10 text-brand-500 animate-spin" />
-        </div>
+      <div className="max-w-7xl mx-auto px-6 py-32 flex justify-center">
+        <Loader2 className="w-8 h-8 text-accent animate-spin" />
       </div>
     );
   }
@@ -68,113 +71,131 @@ export default function BookDetail() {
   if (!book) return null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Breadcrumb */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-6 transition-colors group"
-      >
-        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        Back to Library
-      </button>
+    <div className="max-w-[1400px] mx-auto px-6 sm:px-12 py-12">
+      {/* Navigation Bar */}
+      <div className="flex items-center justify-between mb-12 border-b border-secondary-bg pb-6">
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-secondary-text hover:text-primary-text transition-colors"
+        >
+          <ArrowLeft className="w-3 h-3" />
+          Index
+        </button>
+
+        {/* Prev / Next Buttons */}
+        {bookIds.length > 0 && (
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => prevBookId && navigate(`/books/${prevBookId}`)}
+              disabled={!prevBookId}
+              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-secondary-text hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-3 h-3" /> Prev
+            </button>
+            <span className="text-[10px] uppercase tracking-widest text-faint-text">
+              {currentIndex >= 0 ? `${currentIndex + 1} / ${bookIds.length}` : ''}
+            </span>
+            <button
+              onClick={() => nextBookId && navigate(`/books/${nextBookId}`)}
+              disabled={!nextBookId}
+              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-secondary-text hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              Next <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Main Detail Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-        {/* Left: Cover + Meta */}
-        <div className="lg:col-span-1 flex flex-col gap-5">
-          <div className="card overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-24">
+        {/* Left: Cover */}
+        <div className="lg:col-span-4">
+          <div className="sticky top-28">
             {book.cover_image_url ? (
               <img
                 src={book.cover_image_url}
                 alt={book.title}
-                className="w-full object-cover"
-                style={{ maxHeight: '420px', objectPosition: 'top' }}
+                className="w-full object-cover shadow-2xl"
+                style={{ objectPosition: 'top' }}
               />
             ) : (
-              <div className="h-80 flex items-center justify-center bg-gray-800">
-                <BookOpen className="w-24 h-24 text-gray-600" />
+              <div className="w-full aspect-[2/3] flex items-center justify-center bg-secondary-bg">
+                <BookOpen className="w-16 h-16 text-border-color" />
               </div>
             )}
-          </div>
-
-          {/* Metadata card */}
-          <div className="card p-5 flex flex-col gap-4">
-            <div>
-              <h1 className="text-xl font-bold text-white leading-snug">{book.title}</h1>
-              <p className="text-gray-400 mt-1">{book.author}</p>
-            </div>
-            <StarRating rating={book.rating} />
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="bg-gray-800 rounded-xl p-3">
-                <div className="text-gray-500 text-xs mb-1">Price</div>
-                <div className="text-white font-semibold">{book.price || '—'}</div>
-              </div>
-              <div className="bg-gray-800 rounded-xl p-3">
-                <div className="text-gray-500 text-xs mb-1">Availability</div>
-                <div className={`font-semibold text-xs ${book.availability?.toLowerCase().includes('in stock') ? 'text-green-400' : 'text-red-400'}`}>
-                  {book.availability || '—'}
-                </div>
-              </div>
-            </div>
+            
             {book.book_url && (
               <a
                 href={book.book_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 transition-colors"
+                className="mt-8 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-accent border border-accent hover:bg-accent hover:text-[#0a0a0f] py-3 transition-colors w-full"
               >
-                <ExternalLink className="w-4 h-4" /> View on bookstoread.com
+                <ExternalLink className="w-3 h-3" /> View Retailer
               </a>
             )}
           </div>
         </div>
 
-        {/* Right: Description + AI Panel */}
-        <div className="lg:col-span-2 flex flex-col gap-5">
+        {/* Right: Content */}
+        <div className="lg:col-span-8 flex flex-col gap-12 pt-4">
+          {/* Header */}
+          <div>
+            <div className="text-[10px] uppercase tracking-widest text-accent mb-4">Volume {book.id}</div>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-primary-text leading-[1.1] mb-6">{book.title}</h1>
+            <p className="text-xl font-serif italic text-secondary-text">{book.author}</p>
+            <div className="mt-8">
+              <TextRating rating={book.rating} />
+            </div>
+            <div className="flex flex-wrap gap-x-8 gap-y-4 mt-4 text-[10px] uppercase tracking-widest text-faint-text">
+              <div><span className="text-secondary-text">Price:</span> {book.price || '—'}</div>
+              <div><span className="text-secondary-text">Status:</span> <span className={book.availability?.toLowerCase().includes('in stock') ? 'text-accent' : 'text-red-900'}>{book.availability || '—'}</span></div>
+            </div>
+          </div>
+
           {/* Description */}
           {book.description && (
-            <div className="card p-6">
-              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Description</h2>
-              <p className="text-gray-300 leading-relaxed text-sm">{book.description}</p>
+            <div className="prose prose-invert max-w-none">
+              <p className="font-serif text-primary-text/80 text-lg leading-relaxed">{book.description}</p>
             </div>
           )}
 
           {/* AI Insights Panel */}
-          <div className="card p-6 border-brand-500/20 bg-gradient-to-br from-gray-900 to-gray-900/50">
-            <div className="flex items-center gap-2 mb-5">
-              <Sparkles className="w-5 h-5 text-brand-400" />
-              <h2 className="text-lg font-bold text-white">AI Insights</h2>
+          <div className="mt-8 border-t border-b border-secondary-bg py-12">
+            <div className="flex items-center gap-2 mb-8">
+              <Sparkles className="w-4 h-4 text-accent" />
+              <h2 className="text-2xl font-serif text-primary-text">Editorial Insights</h2>
             </div>
 
             {!book.is_processed ? (
-              <div className="flex items-center gap-3 text-gray-400 py-4">
-                <Loader2 className="w-5 h-5 animate-spin text-brand-500" />
-                <span>Generating AI insights...</span>
+              <div className="flex items-center gap-3 text-secondary-text py-4 text-xs uppercase tracking-widest">
+                <Loader2 className="w-4 h-4 animate-spin text-accent" />
+                <span>Generating insights...</span>
               </div>
             ) : (
-              <div className="flex flex-col gap-5">
-                {/* Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                {/* Summary (Takes up 2 cols) */}
                 {book.ai_summary && (
-                  <div>
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">📖 AI Summary</div>
-                    <p className="text-gray-300 text-sm leading-relaxed bg-gray-800/60 rounded-xl p-4">{book.ai_summary}</p>
+                  <div className="md:col-span-2">
+                    <div className="text-[10px] uppercase tracking-widest text-faint-text mb-4">Synopsis</div>
+                    <p className="font-serif italic text-secondary-text text-lg leading-relaxed text-balance">
+                      "{book.ai_summary}"
+                    </p>
                   </div>
                 )}
 
-                {/* Genre + Sentiment */}
-                <div className="flex flex-wrap gap-4">
+                {/* Metadata (Takes up 1 col) */}
+                <div className="flex flex-col gap-8 md:col-span-1">
                   {book.ai_genre && (
                     <div>
-                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">🏷️ Genre</div>
-                      <span className="badge bg-brand-500/20 text-brand-300 border border-brand-500/30">
-                        <Tag className="w-3 h-3 mr-1" />{book.ai_genre}
-                      </span>
+                      <div className="text-[10px] uppercase tracking-widest text-faint-text mb-2">Category</div>
+                      <div className="text-primary-text text-sm">{book.ai_genre}</div>
                     </div>
                   )}
                   {book.ai_sentiment && (
                     <div>
-                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">💬 Sentiment</div>
-                      <SentimentBadge sentiment={book.ai_sentiment} />
+                      <div className="text-[10px] uppercase tracking-widest text-faint-text mb-2">Tone</div>
+                      <div className="text-primary-text text-sm">{book.ai_sentiment}</div>
                     </div>
                   )}
                 </div>
@@ -185,19 +206,17 @@ export default function BookDetail() {
       </div>
 
       {/* Recommendations */}
-      <div>
-        <div className="flex items-center gap-2 mb-5">
-          <h2 className="text-xl font-bold text-white">You Might Also Like</h2>
-          <ChevronRight className="w-5 h-5 text-gray-600" />
-        </div>
+      <div className="mt-32 border-t border-secondary-bg pt-12">
+        <h2 className="text-2xl font-serif text-primary-text mb-12 text-center">Curated Selection</h2>
+        
         {recsLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-12">
             {Array.from({ length: 5 }).map((_, i) => <BookCardSkeleton key={i} />)}
           </div>
         ) : recs.length === 0 ? (
-          <div className="card p-8 text-center text-gray-500">No recommendations yet — run the index_books command first.</div>
+          <div className="text-center text-faint-text font-serif text-lg italic">More titles arriving soon.</div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-12">
             {recs.map(rec => <BookCard key={rec.id} book={rec} />)}
           </div>
         )}

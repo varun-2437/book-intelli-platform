@@ -1,7 +1,23 @@
+import hashlib
 from .vector_store import search_similar
 from ai.insights import call_lm
 
+# ─── Response Cache: avoids repeated LLM calls for identical questions ───
+_response_cache = {}
+
+
+def _cache_key(question):
+    """Generate a stable hash key for a question string."""
+    return hashlib.sha256(question.strip().lower().encode()).hexdigest()
+
+
 def answer_question(user_question):
+    # Check cache first
+    key = _cache_key(user_question)
+    if key in _response_cache:
+        print(f"[Cache HIT] Returning cached answer for: {user_question[:50]}...")
+        return _response_cache[key]
+
     try:
         results = search_similar(user_question, n_results=5)
     except Exception as e:
@@ -39,7 +55,13 @@ Answer:"""
         print(f"Error querying LM: {e}")
         return {"answer": "AI service unavailable. Please ensure LM Studio is running.", "sources": sources}
     
-    return {
+    response = {
         "answer": answer,
         "sources": sources
     }
+
+    # Store in cache
+    _response_cache[key] = response
+    print(f"[Cache MISS] Cached new answer for: {user_question[:50]}...")
+
+    return response

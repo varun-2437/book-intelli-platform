@@ -242,6 +242,3 @@ No code changes required.
 
 ---
 
-## 📄 License
-
-This project is for educational purposes as part of an internship assignment.

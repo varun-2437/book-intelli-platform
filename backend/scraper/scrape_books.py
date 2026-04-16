@@ -72,7 +72,7 @@ def scrape(pages=5):
             except Exception as e:
                 print(f"Error parsing book card: {e}")
                 
-        # Now visit each book's page to get description
+        # Now visit each book's page to get description and full-res image
         for b in books_on_page:
             try:
                 driver.get(b["book_url"])
@@ -81,6 +81,15 @@ def scrape(pages=5):
                     description = desc_element.text
                 except:
                     description = ""
+                
+                # Get full-resolution cover image from the detail page
+                try:
+                    detail_img = driver.find_element(By.CSS_SELECTOR, "#product_gallery img")
+                    full_img_url = detail_img.get_attribute("src")
+                    if full_img_url:
+                        b["cover_image_url"] = full_img_url
+                except:
+                    pass  # Keep the thumbnail URL as fallback
                 
                 num_reviews = 0 # Defaulting
                 
@@ -105,7 +114,10 @@ def scrape(pages=5):
     print("Scraping completed!")
 
 if __name__ == "__main__":
-    scrape_pages = 1
+    # Multi-page scraping pipeline: default 5 pages (100 books)
+    # Usage: python scrape_books.py [num_pages]
+    scrape_pages = 5
     if len(sys.argv) > 1:
         scrape_pages = int(sys.argv[1])
+    print(f"🔄 Bulk scraping pipeline: {scrape_pages} pages ({scrape_pages * 20} books)")
     scrape(scrape_pages)
