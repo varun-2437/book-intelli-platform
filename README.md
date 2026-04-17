@@ -99,7 +99,13 @@ CREATE DATABASE book_intelligence;
 
 #### Configure environment variables
 
-Create a file at `backend/.env` with the following:
+Copy the template file `backend/.env.example` to `backend/.env`:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Ensure the following variables are configured in your new `.env` file:
 
 ```env
 DB_NAME=book_intelligence
@@ -110,6 +116,7 @@ DB_PORT=3306
 LM_STUDIO_URL=https://api.openai.com/v1
 LM_STUDIO_MODEL=gpt-4o-mini
 NVIDIA_API_KEY=sk-your-openai-api-key-here
+SECRET_KEY=your_django_secret_key_here
 ```
 
 > **Note:** Despite the variable name `NVIDIA_API_KEY`, this accepts any OpenAI-compatible API key. You can use OpenAI (`https://api.openai.com/v1`), NVIDIA NIM (`https://integrate.api.nvidia.com/v1`), or a local LM Studio instance (`http://localhost:1234/v1`).
