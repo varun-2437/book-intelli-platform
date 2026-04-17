@@ -192,6 +192,22 @@ python manage.py runserver
 
 ---
 
+## Screenshots
+
+### Dashboard
+![Dashboard](screenshots/1_dashboard.png)
+
+### Book Detail with AI Insights
+![Book Detail](screenshots/2_bookdetail.png)
+
+### AI Q&A Assistant
+![Q&A](screenshots/3_qa.png)
+
+### Search & Filter
+![Search](screenshots/4_search.png)
+
+---
+
 ## 📡 API Endpoints
 
 | Method | Endpoint | Description |

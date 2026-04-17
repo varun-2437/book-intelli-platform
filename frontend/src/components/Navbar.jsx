@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Sparkles, MessageSquareText, Moon, Sun } from 'lucide-react';
+import { BookOpen, MessageSquareText, Moon, Sun } from 'lucide-react';
 
 export default function Navbar({ onOpenDrawer }) {
   const { pathname } = useLocation();
@@ -35,11 +35,6 @@ export default function Navbar({ onOpenDrawer }) {
 
           {/* Right Actions */}
           <div className="flex items-center gap-4 sm:gap-6">
-            <div className="hidden md:flex items-center gap-2 text-[10px] uppercase tracking-widest text-secondary-text mr-4">
-              <Sparkles className="w-3 h-3 text-accent" />
-              <span>NVIDIA NIM · GPT-OSS 120B</span>
-            </div>
-            
             <button
               onClick={() => setIsLight(!isLight)}
               className="p-2 border border-border-color hover:border-accent text-secondary-text hover:text-accent transition-all duration-300"
